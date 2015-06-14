@@ -19,11 +19,12 @@ Notifier.prototype.start = function(filename) {
   var self = this;
   var prevSize = fs.statSync(filename).size;
 
-  this._handle = fs.watchFile(filename, function (event) {
-    console.log('change');
+  this._handle = fs.watchFile(filename,
+    { persistent: true, interval: 5000 },
+    function (event) {
     if (event.size > prevSize) {
       self.emit('change', fs.createReadStream(filename, {
-          start: prevSize + 1,
+          start: prevSize,
           end: event.size
         }));
         prevSize = event.size;
