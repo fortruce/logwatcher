@@ -1,6 +1,8 @@
 var nf = require('./notify');
 var exec = require('child_process').exec;
 var fs = require('fs');
+var os = require('os');
+var path = require('path');
 
 function ffmpeg(filename, options) {
   var cmd = ['ffmpeg'];
@@ -14,15 +16,11 @@ function ffmpeg(filename, options) {
   return cmd.join(' ');
 }
 
-function record(filename, screen) {
+function record(filename, ffmpegOpts) {
+  var cmd = ffmpeg(filename, ffmpegOpts);
+  console.log('running:', cmd);
   return exec(
-    ffmpeg(filename, {
-              '-threads': '2',
-              '-rtbufsize': '1000M',
-              '-r': '24',
-              '-f': 'dshow',
-              '-i': 'video="screen-capture-recorder"',
-    }),
+    cmd,
     {
       'cwd': process.cwd()
     },
@@ -34,34 +32,64 @@ function record(filename, screen) {
     });
 }
 
-function Recorder(screen) {
-  this.screen = screen;
+function Recorder(ffmpegOpts) {
+  this._handle = undefined;
+  this._ffmpegOpts = ffmpegOpts;
 }
 
 Recorder.prototype.start = function(filename) {
-  this._handle = record(filename, this.screen);
-}
-
-Recorder.prototype.restart = function(filename) {
   this.stop();
-  this.start(filename);
+  this._handle = record(filename, this._ffmpegOpts);
 }
 
 Recorder.prototype.stop = function() {
-  this._handle.kill();
-  this._handle.on('exit', function () {
-    console.log('video captured');
-  });
+  if (this._handle) {
+    this._handle.on('exit', function () {
+      console.log('video captured');
+    });
+    this._handle.kill();
+  }
+}
+
+var logPath;
+var ffmpegOpts;
+if (os.platform() === 'darwin') {
+  logPath = path.join(process.env['HOME'], 'Library/Logs/Unity/Player.log');
+  ffmpegOpts = {
+    '-f': 'avfoundation',
+    '-vsync': '2',
+    '-i': '"1:none"'
+  }
+} else {
+  logPath = 'C:\\Program Files (x86)\\Hearthstone\\Hearthstone_Data\\output_log.txt';
+  ffmpegOpts = {
+    '-threads': '2',
+    '-rtbufsize': '1000M',
+    '-r': '24',
+    '-f': 'dshow',
+    '-i': 'video="screen-capture-recorder"',
+  }
 }
 
 var index = 0;
-var recorder = new Recorder('Hearthstone');
-var notifier = nf.notify('C:\\Program Files (x86)\\Hearthstone\\Hearthstone_Data\\output_log.txt');
+var recorder = new Recorder(ffmpegOpts);
 
-recorder.start('output/video_' + index + '.mp4');
+var notifier = nf.notify(logPath);
+
+function fileName(index, video) {
+  while (index.toString().length < 4) {
+    index = '0' + index.toString();
+  }
+  if (video) {
+    return 'output/video_' + index + '.mp4';
+  }
+  return 'output/text_' + index + '.txt';
+}
+
+recorder.start(fileName(index, true));
 
 notifier.on('change', function(stream) {
-  stream.pipe(fs.createWriteStream('output/text_' + index + '.txt'));
+  stream.pipe(fs.createWriteStream(fileName(index, false)));
   index++;
-  recorder.restart('output/video_' + index + '.mp4');
+  recorder.start(fileName(index, true));
 });
