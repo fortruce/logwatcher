@@ -58,16 +58,17 @@ if (os.platform() === 'darwin') {
   ffmpegOpts = {
     '-f': 'avfoundation',
     '-vsync': '2',
-    '-i': '"1:none"'
+    '-i': '"1:none"',
+    '-r': '30'
   }
 } else {
   logPath = 'C:\\Program Files (x86)\\Hearthstone\\Hearthstone_Data\\output_log.txt';
   ffmpegOpts = {
-    '-threads': '2',
-    '-rtbufsize': '1000M',
-    '-r': '24',
+    '-rtbufsize': '2000M',
     '-f': 'dshow',
     '-i': 'video="screen-capture-recorder"',
+    '-s': '1280x800',
+    'r': '30'
   }
 }
 
