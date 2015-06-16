@@ -1,4 +1,3 @@
-var nf = require('./notify');
 var exec = require('child_process').exec;
 var fs = require('fs');
 var os = require('os');
@@ -48,7 +47,8 @@ Recorder.prototype.stop = function() {
     this._handle.on('exit', function () {
       console.log('video captured');
     });
-    this._handle.kill();
+    this._handle.stdin.write('q');
+    this._handle.stdin.end();
   }
 }
 
@@ -65,11 +65,10 @@ if (os.platform() === 'darwin') {
 } else {
   logPath = 'C:\\Program Files (x86)\\Hearthstone\\Hearthstone_Data\\output_log.txt';
   ffmpegOpts = {
-    '-rtbufsize': '2000M',
     '-f': 'dshow',
     '-i': 'video="screen-capture-recorder"',
     '-s': '1280x800',
-    'r': '30'
+    '-r': '30'
   }
 }
 
