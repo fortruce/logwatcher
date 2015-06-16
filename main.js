@@ -3,7 +3,7 @@ var exec = require('child_process').exec;
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
-var notifier = require('fsnotifier');
+var nf = require('fsnotifier');
 
 function ffmpeg(filename, options) {
   var cmd = ['ffmpeg'];
