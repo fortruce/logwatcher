@@ -75,7 +75,7 @@ if (os.platform() === 'darwin') {
 var index = 0;
 var recorder = new Recorder(ffmpegOpts);
 
-var notifier = nf.notify(logPath);
+var notifier = nf(logPath);
 
 function fileName(index, video) {
   while (index.toString().length < 4) {

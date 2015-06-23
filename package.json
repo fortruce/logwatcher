@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fsnotifier": "0.0.5"
+    "fsnotifier": "0.0.7"
   }
 }
